@@ -1,0 +1,12 @@
+<script src="https://cdn.jsdelivr.net/npm/appwrite@17.0.1"></script>
+<script type="module">
+    const { Client, Databases, Permission, Role, ID, Account } = Appwrite;
+    const client = new Client();
+    client
+        .setEndpoint('https://nyc.cloud.appwrite.io/v1')
+        .setProject('680128f3003a70ab53ca');
+    const account = new Account(client);
+    const databases = new Databases(client);
+
+
+</script>

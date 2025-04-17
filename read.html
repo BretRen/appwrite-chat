@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>阅读聊天记录</title>
+    <style>
+        #chat {
+            height: 400px;
+            /* 你可以自己调 */
+            overflow-y: auto;
+            border: 1px solid #ccc;
+            padding: 10px;
+        }
+    </style>
+
+</head>
+
+<body>
+
+    <h1>聊天记录</h1>
+    <div id="chat"></div>
+    <button id="gochat">发布消息</button>
+    <script src="https://cdn.jsdelivr.net/npm/appwrite@17.0.1"></script>
+    <script type="module">
+
+        const { Client, Databases, Permission, Role, ID, Account } = Appwrite;
+        const client = new Client();
+        client
+            .setEndpoint('https://nyc.cloud.appwrite.io/v1')
+            .setProject('680128f3003a70ab53ca');
+        const account = new Account(client);
+        const databases = new Databases(client);
+        // const realtime = new RealTime(client);
+
+        const chat = document.getElementById("chat")
+        const gochat = document.getElementById("gochat")
+
+        gochat.addEventListener("click", () => {
+            window.open('/write.html', '_blank', 'width=300,height=100');
+
+        })
+
+
+
+        // console.log(result);
+        const user = await account.get();
+        console.log("User ID:", user.$id);  // 打印用户 ID
+        const userId = user.$id;
+        const go = async () => {
+            const result = await databases.listDocuments(
+                '68012909000822fe269d',
+                '680129d100158343fc91',
+                [] // queries (optional)
+            );
+            chat.innerHTML = ""
+            console.log("go")
+            result.documents.forEach(item => {
+                const text = document.createElement("p")
+                const sender = document.createElement("p")
+                text.textContent = item.text
+                sender.textContent = item.sender
+                sender.style.fontSize = "10px"
+
+                if (item.sender == userId) {
+                    text.style.textAlign = "right"
+                    sender.style.textAlign = "right"
+                }
+
+                chat.appendChild(sender)
+                chat.appendChild(text)
+
+
+
+            });
+            chat.scrollTop = chat.scrollHeight;
+
+        }
+        go()
+
+        client.subscribe(
+            `databases.68012909000822fe269d.collections.680129d100158343fc91.documents`,
+            (response) => {
+                console.log('Collection change detected:', response);
+                go(); // 重新刷新消息
+            }
+        );
+
+        setTimeout(() => {
+            chat.scrollTop = chat.scrollHeight;
+        }, 0);
+
+
+    </script>
+</body>
+
+</html>

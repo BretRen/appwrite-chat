@@ -1,0 +1,24 @@
+<button onclick="sendNotification()">测试通知</button>
+<script>
+    function sendNotification() {
+        if (Notification.permission === 'granted') {
+            new Notification('Hi~ 👋', {
+                body: '这是一个通知测试',
+                icon: 'https://cdn-icons-png.flaticon.com/512/1048/1048953.png'
+            });
+        } else if (Notification.permission !== 'denied') {
+            Notification.requestPermission().then(permission => {
+                if (permission === 'granted') {
+                    new Notification('权限获得成功！', {
+                        body: '可以正常通知啦～',
+                        icon: 'https://cdn-icons-png.flaticon.com/512/1048/1048953.png'
+                    });
+                } else {
+                    alert('你拒绝了通知权限');
+                }
+            });
+        } else {
+            alert('通知已被拒绝，请在浏览器设置中打开');
+        }
+    }
+</script>

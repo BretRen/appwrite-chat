@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>lOGIN</title>
+</head>
+
+<body>
+
+
+    邮箱：<input type="text" id="username">
+    密码：<input type="password" id="password">
+    <button id="button">提交</button>
+    <p id="hint" style="color: red;"></p>
+
+
+    <script src="https://cdn.jsdelivr.net/npm/appwrite@17.0.1"></script>
+    <script type="module">
+        const { Client, Databases, Permission, Role, ID, Account } = Appwrite;
+        const client = new Client();
+        client
+            .setEndpoint('https://nyc.cloud.appwrite.io/v1')
+            .setProject('680128f3003a70ab53ca');
+        const account = new Account(client);
+        const databases = new Databases(client);
+
+        const username = document.getElementById("username")
+        const password = document.getElementById("password")
+        const button = document.getElementById("button")
+        const hint = document.getElementById("hint")
+
+        button.addEventListener("click", async () => {
+            try {
+                hint.textContent = ""
+                const user = await account.createEmailPasswordSession(username.value, password.value);
+                window.location.pathname = "/read.html"
+            } catch (e) {
+                hint.textContent = e
+            }
+        })
+
+
+    </script>
+</body>
+
+</html>
