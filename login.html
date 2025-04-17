@@ -36,6 +36,7 @@
                 hint.textContent = ""
                 const user = await account.createEmailPasswordSession(username.value, password.value);
                 window.location.pathname = "read.html"
+                window.close();
             } catch (e) {
                 hint.textContent = e
             }

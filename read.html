@@ -8,98 +8,120 @@
     <style>
         #chat {
             height: 400px;
-            /* 你可以自己调 */
             overflow-y: auto;
             border: 1px solid #ccc;
             padding: 10px;
         }
     </style>
-
 </head>
 
 <body>
-
     <h1>聊天记录</h1>
     <div id="chat">加载中……（如果长时间加载请刷新页面或者请登录。 ）</div>
     <button id="gochat">发布消息</button>
     <button id="login" disabled>登录</button>
+    <button id="name">设置名字</button>
+
     <script src="https://cdn.jsdelivr.net/npm/appwrite@17.0.1"></script>
     <script type="module">
-
-        const { Client, Databases, Permission, Role, ID, Account } = Appwrite;
+        const { Client, Databases, Permission, Role, ID, Account, Query } = Appwrite;
         const client = new Client();
         client
             .setEndpoint('https://nyc.cloud.appwrite.io/v1')
             .setProject('680128f3003a70ab53ca');
+
         const account = new Account(client);
         const databases = new Databases(client);
 
         const chat = document.getElementById("chat")
         const gochat = document.getElementById("gochat")
         const login = document.getElementById("login")
+        const name = document.getElementById("name")
 
+        // 事件绑定
         gochat.addEventListener("click", () => {
             window.open('write.html', '_blank', 'width=300,height=100');
-        })
+        });
 
-        // 登录按钮点击事件
         login.addEventListener("click", () => {
             window.open('login.html', '_blank', 'width=500,height=200');
-        })
+        });
 
-        // 获取用户信息并初始化聊天内容
+        name.addEventListener("click", () => {
+            window.open('name.html', '_blank', 'width=500,height=200');
+        });
+
+        // 获取用户名并写入 localStorage
+        const getName = async (userId) => {
+            try {
+                const result = await databases.listDocuments(
+                    '68012909000822fe269d',
+                    '68015a040027dcd80396',
+                    [Query.equal("user_id", userId)]
+                );
+                if (result.documents.length > 0) {
+                    const username = result.documents[0].name;
+                    localStorage.setItem("name", username);
+                }
+            } catch (e) {
+                console.error("获取用户名失败：", e.message);
+            }
+        };
+
+        // 初始化聊天内容
         const initializeChat = async () => {
             try {
-                const user = await account.get(); // 异步获取用户信息
-                console.log("User ID:", user.$id); // 打印用户 ID
+                const user = await account.get();
                 const userId = user.$id;
+                await getName(userId);
 
                 const go = async () => {
                     const result = await databases.listDocuments(
                         '68012909000822fe269d',
                         '680129d100158343fc91',
-                        [] // queries (optional)
+                        []
                     );
-                    chat.innerHTML = ""
-                    console.log("go")
+                    chat.innerHTML = "";
                     result.documents.forEach(item => {
-                        const text = document.createElement("p")
-                        const sender = document.createElement("p")
-                        text.textContent = item.text
-                        sender.textContent = item.sender
-                        sender.style.fontSize = "10px"
+                        const text = document.createElement("p");
+                        const sender = document.createElement("p");
+                        text.textContent = item.text;
 
-                        if (item.sender == userId) {
-                            text.style.textAlign = "right"
-                            sender.style.textAlign = "right"
+                        // 判断当前消息是否为自己的
+                        if (item.sender === userId) {
+                            const storedName = localStorage.getItem("name");
+                            sender.textContent = storedName || item.sender;
+                            text.style.textAlign = "right";
+                            sender.style.textAlign = "right";
+                        } else {
+                            sender.textContent = item.sender;
                         }
 
-                        chat.appendChild(sender)
-                        chat.appendChild(text)
+                        sender.style.fontSize = "10px";
+                        chat.appendChild(sender);
+                        chat.appendChild(text);
                     });
                     chat.scrollTop = chat.scrollHeight;
-                }
+                };
 
-                await go(); // 等待 `go` 执行完成
+                await go();
 
-                // 订阅实时更新
+                // 实时监听
                 client.subscribe(
                     `databases.68012909000822fe269d.collections.680129d100158343fc91.documents`,
                     (response) => {
-                        console.log('Collection change detected:', response);
-                        go(); // 重新刷新消息
+                        console.log('有新消息，刷新中...');
+                        go();
                     }
                 );
 
             } catch (e) {
-                // 如果没有用户登录，禁用登录按钮
+                console.warn("未登录，启用登录按钮");
                 login.disabled = false;
             }
-        }
+        };
 
-        // 初始化聊天
         initializeChat();
-
     </script>
 </body>
 

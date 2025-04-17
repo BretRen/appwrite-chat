@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>设置名字</title>
+</head>
+
+<body>
+    名字： <input type="text" name="" id="n"> <button id="button">确定</button>
+    <script src="https://cdn.jsdelivr.net/npm/appwrite@17.0.1"></script>
+    <script type="module">
+        const { Client, Databases, Permission, Role, ID, Account, Query } = Appwrite;
+        const client = new Client();
+        client
+            .setEndpoint('https://nyc.cloud.appwrite.io/v1')
+            .setProject('680128f3003a70ab53ca');
+        const account = new Account(client);
+        const databases = new Databases(client);
+
+        // 获取当前用户信息
+        const user = await account.get();
+        console.log("User ID:", user.$id);  // 打印用户 ID
+        const userId = user.$id;
+
+        const n = document.getElementById("n")
+        const button = document.getElementById("button")
+
+
+        const getname = async () => {
+            const result = await databases.listDocuments(
+                '68012909000822fe269d', // databaseId
+                '68015a040027dcd80396', // collectionId
+                [
+                    Query.equal("user_id", userId)
+                ] // queries (optional)
+            );
+            console.log(result)
+            return result
+        }
+
+        button.addEventListener("click", async () => {
+            button.disabled = true
+            try {
+                const response = await databases.createDocument(
+                    "68012909000822fe269d",
+                    "68015a040027dcd80396",
+                    userId,
+                    { user_id: userId, name: n.value },
+                    [
+                        Permission.read(Role.any()),            // 所有人可读
+                        Permission.update(Role.user(userId)),   // 仅用户自己可编辑
+                        Permission.delete(Role.user(userId))    // 仅用户自己可删除
+                    ]
+                )
+                localStorage.setItem("name", (await getname()).documents[0].name)
+            } catch (e) {
+
+            }
+
+            window.close();
+
+        })
+
+
+
+    </script>
+</body>
+
+</html>
